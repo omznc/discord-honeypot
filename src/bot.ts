@@ -69,7 +69,7 @@ const unmarkHoneypot = async (channel: TextChannel) => {
 	deleteHoneypot.run(channel.id);
 };
 
-client.once("ready", async () => {
+client.once("clientReady", async () => {
 	await rest.put(Routes.applicationCommands(clientId), { body: commands });
 	const perms = new PermissionsBitField([
 		PermissionsBitField.Flags.ViewChannel,
@@ -126,6 +126,20 @@ client.on("guildCreate", async (guild) => {
 	if (!channel || channel.type !== ChannelType.GuildText) return;
 
 	await markHoneypot(channel);
+
+	const owner = await guild.fetchOwner().catch(() => null);
+	if (owner) {
+		const dm = await owner.createDM().catch(() => null);
+		await dm
+			?.send(
+				[
+					`Thanks for adding Honeypot to ${guild.name}.`,
+					`Move the bot's highest role above everyone it should ban. Drag its role to the top (below owner).`,
+					`Admin doesn't bypass hierarchy; bot role must outrank targets and keep Ban Members.`,
+				].join(" "),
+			)
+			.catch(() => {});
+	}
 });
 
 client.on("messageCreate", async (message) => {
