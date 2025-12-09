@@ -132,10 +132,10 @@ client.on("messageCreate", async (message) => {
 	if (message.channel.type !== ChannelType.GuildText) return;
 
 	await message.guild.members.ban(message.author, { reason: "Honeypot trip", deleteMessageSeconds: 3600 }).catch(() => {});
-	await purgeLast24h(message.channel);
+	await purgeLast24h(message.channel, message.author.id);
 });
 
-async function purgeLast24h(channel: TextChannel) {
+async function purgeLast24h(channel: TextChannel, targetUserId: string) {
 	const cutoff = Date.now() - 24 * 60 * 60 * 1000;
 	let before: string | undefined;
 
@@ -143,10 +143,12 @@ async function purgeLast24h(channel: TextChannel) {
 		const msgs = await channel.messages.fetch({ limit: 100, before }).catch(() => null);
 		if (!msgs || msgs.size === 0) break;
 
-		const recent = msgs.filter((m) => m.createdTimestamp >= cutoff);
+		const recentFromUser = msgs.filter(
+			(m) => m.createdTimestamp >= cutoff && m.author.id === targetUserId,
+		);
 
-		if (recent.size > 0) await channel.bulkDelete(recent, true).catch(() => {});
-		if (msgs.size < 100 || recent.size === 0) break;
+		if (recentFromUser.size > 0) await channel.bulkDelete(recentFromUser, true).catch(() => {});
+		if (msgs.size < 100 || recentFromUser.size === 0) break;
 
 		before = msgs.lastKey();
 	}
