@@ -1,3 +1,4 @@
+import { Database } from "bun:sqlite";
 import { ChannelType, Client, GatewayIntentBits, MessageFlags, PermissionsBitField, REST, Routes, type TextChannel } from "discord.js";
 
 const token = process.env.DISCORD_TOKEN;
@@ -5,19 +6,16 @@ const clientId = process.env.CLIENT_ID;
 if (!token || !clientId) {
 	throw new Error("Set DISCORD_TOKEN and CLIENT_ID env vars.");
 }
-const dataFile = "honeypots.json";
+const dbPath = process.env.HONEYPOT_DB_PATH ?? "honeypots.sqlite";
+const db = new Database(dbPath);
 
-const load = async () => {
-	const file = Bun.file(dataFile);
-
-	if (!(await file.exists())) return new Set<string>();
-
-	const data = (await file.json()) as string[];
-	return new Set<string>(data);
-};
-
-const save = (ids: Set<string>) => Bun.write(dataFile, JSON.stringify([...ids]));
-const honeypots = await load();
+// Database initialization
+db.run("create table if not exists honeypots (id text primary key)");
+const insertHoneypot = db.query("insert or ignore into honeypots (id) values (?)");
+const honeypots = new Set<string>();
+for (const row of db.query("select id from honeypots").all() as { id: string }[]) {
+	honeypots.add(row.id);
+}
 const topicText = "Honeypot channel. Messages here trigger an automatic ban.";
 const disclaimer = "This is a honeypot channel. Do not post here unless you want to be banned.";
 
@@ -47,7 +45,7 @@ const markHoneypot = async (channel: TextChannel) => {
 	await channel.send(disclaimer).catch(() => {});
 
 	honeypots.add(channel.id);
-	await save(honeypots);
+	insertHoneypot.run(channel.id);
 };
 
 client.once("clientReady", async () => {

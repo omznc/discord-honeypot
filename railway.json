@@ -1,0 +1,32 @@
+{
+	"$schema": "https://railway.com/railway.schema.json",
+	"name": "discord-honeypot",
+	"build": {
+		"builder": "NIXPACKS",
+		"nixpacksPlan": {
+			"phases": {
+				"setup": {
+					"nixPkgs": ["bun"]
+				},
+				"install": {
+					"cmds": ["bun install"]
+				}
+			}
+		}
+	},
+	"deploy": {
+		"startCommand": "bun run src/bot.ts"
+	},
+	"variables": {
+		"DISCORD_TOKEN": {
+			"description": "Discord bot token"
+		},
+		"CLIENT_ID": {
+			"description": "Discord application client ID"
+		},
+		"HONEYPOT_DB_PATH": {
+			"description": "Path to SQLite file for honeypots (use /data/honeypots.sqlite when a volume is attached)",
+			"defaultValue": "/data/honeypots.sqlite"
+		}
+	}
+}
