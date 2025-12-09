@@ -2,17 +2,8 @@
 	"$schema": "https://railway.com/railway.schema.json",
 	"name": "discord-honeypot",
 	"build": {
-		"builder": "NIXPACKS",
-		"nixpacksPlan": {
-			"phases": {
-				"setup": {
-					"nixPkgs": ["bun"]
-				},
-				"install": {
-					"cmds": ["bun install"]
-				}
-			}
-		}
+		"builder": "RAILPACK",
+		"buildCommand": "bun install"
 	},
 	"deploy": {
 		"preDeployCommand": "sh -c 'if [ -z \"$DISCORD_TOKEN\" ] || [ -z \"$CLIENT_ID\" ]; then echo \"Set DISCORD_TOKEN and CLIENT_ID\" >&2; exit 1; fi'",

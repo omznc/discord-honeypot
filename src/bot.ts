@@ -8,10 +8,9 @@ if (!token || !clientId) {
 }
 const dbPath = process.env.HONEYPOT_DB_PATH ?? "honeypots.sqlite";
 const db = new Database(dbPath);
-
-// Database initialization
 db.run("create table if not exists honeypots (id text primary key)");
 const insertHoneypot = db.query("insert or ignore into honeypots (id) values (?)");
+const deleteHoneypot = db.query("delete from honeypots where id = ?");
 const honeypots = new Set<string>();
 for (const row of db.query("select id from honeypots").all() as { id: string }[]) {
 	honeypots.add(row.id);
@@ -33,6 +32,19 @@ const commands = [
 			},
 		],
 	},
+	{
+		name: "removehoneypot",
+		description: "Remove a channel from honeypot list",
+		options: [
+			{
+				name: "channel",
+				description: "Text channel to unmark",
+				type: 7,
+				channel_types: [ChannelType.GuildText],
+				required: true,
+			},
+		],
+	},
 ];
 
 const rest = new REST({ version: "10" }).setToken(token);
@@ -46,6 +58,11 @@ const markHoneypot = async (channel: TextChannel) => {
 
 	honeypots.add(channel.id);
 	insertHoneypot.run(channel.id);
+};
+
+const unmarkHoneypot = async (channel: TextChannel) => {
+	honeypots.delete(channel.id);
+	deleteHoneypot.run(channel.id);
 };
 
 client.once("clientReady", async () => {
@@ -65,7 +82,7 @@ client.once("clientReady", async () => {
 });
 
 client.on("interactionCreate", async (interaction) => {
-	if (!interaction.isChatInputCommand() || interaction.commandName !== "sethoneypot") return;
+	if (!interaction.isChatInputCommand()) return;
 
 	if (!interaction.memberPermissions?.has(PermissionsBitField.Flags.Administrator)) {
 		await interaction.reply({ content: "Need administrator.", flags: MessageFlags.Ephemeral });
@@ -74,8 +91,16 @@ client.on("interactionCreate", async (interaction) => {
 
 	const channel = interaction.options.getChannel("channel", true, [ChannelType.GuildText]) as TextChannel;
 
-	await markHoneypot(channel);
-	await interaction.reply({ content: `${channel} is now a honeypot.`, flags: MessageFlags.Ephemeral });
+	if (interaction.commandName === "sethoneypot") {
+		await markHoneypot(channel);
+		await interaction.reply({ content: `${channel} is now a honeypot.`, flags: MessageFlags.Ephemeral });
+		return;
+	}
+
+	if (interaction.commandName === "removehoneypot") {
+		await unmarkHoneypot(channel);
+		await interaction.reply({ content: `${channel} removed from honeypots.`, flags: MessageFlags.Ephemeral });
+	}
 });
 
 client.on("guildCreate", async (guild) => {

@@ -38,8 +38,9 @@ export CLIENT_ID=your_application_id
 bun run src/bot.ts
 ```
 
-## Slash command
+## Slash commands
 - `/sethoneypot channel:<text channel>` (admins only) marks the channel, sets a topic/disclaimer, and persists the ID.
+- `/removehoneypot channel:<text channel>` (admins only) removes the channel from the honeypot list.
 
 ## Build binaries
 ```bash
