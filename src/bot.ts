@@ -29,6 +29,7 @@ const commands = [
 				type: 7,
 				channel_types: [ChannelType.GuildText],
 				required: true,
+				default_member_permissions: PermissionsBitField.Flags.Administrator,
 			},
 		],
 	},
@@ -40,6 +41,7 @@ const commands = [
 				name: "channel",
 				description: "Text channel to unmark",
 				type: 7,
+				default_member_permissions: PermissionsBitField.Flags.Administrator,
 				channel_types: [ChannelType.GuildText],
 				required: true,
 			},
@@ -131,27 +133,9 @@ client.on("messageCreate", async (message) => {
 
 	if (message.channel.type !== ChannelType.GuildText) return;
 
-	await message.guild.members.ban(message.author, { reason: "Honeypot trip", deleteMessageSeconds: 3600 }).catch(() => {});
-	await purgeLast24h(message.channel, message.author.id);
+	await message.guild.members.ban(message.author, { reason: "Honeypot trip", deleteMessageSeconds: 3600 }).catch((e) => {
+		console.error("Error banning user:", e);
+	});
 });
-
-async function purgeLast24h(channel: TextChannel, targetUserId: string) {
-	const cutoff = Date.now() - 24 * 60 * 60 * 1000;
-	let before: string | undefined;
-
-	while (true) {
-		const msgs = await channel.messages.fetch({ limit: 100, before }).catch(() => null);
-		if (!msgs || msgs.size === 0) break;
-
-		const recentFromUser = msgs.filter(
-			(m) => m.createdTimestamp >= cutoff && m.author.id === targetUserId,
-		);
-
-		if (recentFromUser.size > 0) await channel.bulkDelete(recentFromUser, true).catch(() => {});
-		if (msgs.size < 100 || recentFromUser.size === 0) break;
-
-		before = msgs.lastKey();
-	}
-}
 
 client.login(token);
