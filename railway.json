@@ -6,15 +6,12 @@
 		"buildCommand": "bun install"
 	},
 	"deploy": {
-		"preDeployCommand": "sh -c 'if [ -z \"$DISCORD_TOKEN\" ] || [ -z \"$CLIENT_ID\" ]; then echo \"Set DISCORD_TOKEN and CLIENT_ID\" >&2; exit 1; fi'",
+		"preDeployCommand": "sh -c 'if [ -z \"$DISCORD_TOKEN\" ]; then echo \"Set DISCORD_TOKEN\" >&2; exit 1; fi'",
 		"startCommand": "bun run src/bot.ts"
 	},
 	"variables": {
 		"DISCORD_TOKEN": {
 			"description": "Discord bot token"
-		},
-		"CLIENT_ID": {
-			"description": "Discord application client ID"
 		},
 		"HONEYPOT_DB_PATH": {
 			"description": "Path to SQLite file for honeypots (use /data/honeypots.sqlite when a volume is attached)",

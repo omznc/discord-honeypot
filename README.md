@@ -40,12 +40,25 @@ DISCORD_TOKEN=your_bot_token CLIENT_ID=your_application_id ./discord-honeypot-am
 ```bash
 bun install
 export DISCORD_TOKEN=your_bot_token
-export CLIENT_ID=your_application_id
 ```
 
 ## Run locally
 ```bash
 bun run src/bot.ts
+```
+
+## Docker
+```bash
+docker run -d --name discord-honeypot \
+  -e DISCORD_TOKEN=... \
+  -e HONEYPOT_DB_PATH=/data/honeypots.sqlite \
+  -v $(pwd)/data:/data \
+  ghcr.io/omznc/discord-honeypot:latest
+```
+
+## Docker Compose
+```bash
+DISCORD_TOKEN=... docker compose up -d
 ```
 
 ## Slash commands

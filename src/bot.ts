@@ -2,9 +2,8 @@ import { Database } from "bun:sqlite";
 import { ChannelType, Client, GatewayIntentBits, MessageFlags, PermissionsBitField, REST, Routes, type TextChannel } from "discord.js";
 
 const token = process.env.DISCORD_TOKEN;
-const clientId = process.env.CLIENT_ID;
-if (!token || !clientId) {
-	throw new Error("Set DISCORD_TOKEN and CLIENT_ID env vars.");
+if (!token) {
+	throw new Error("Set DISCORD_TOKEN env var.");
 }
 const dbPath = process.env.HONEYPOT_DB_PATH ?? "honeypots.sqlite";
 const db = new Database(dbPath);
@@ -57,8 +56,17 @@ const client = new Client({
 });
 
 const markHoneypot = async (channel: TextChannel) => {
-	await channel.setTopic(topicText).catch(() => {});
-	await channel.send(disclaimer).catch(() => {});
+	try {
+		await channel.setTopic(topicText);
+	} catch (error) {
+		console.error("Error setting honeypot topic:", error);
+	}
+
+	try {
+		await channel.send(disclaimer);
+	} catch (error) {
+		console.error("Error sending honeypot disclaimer:", error);
+	}
 
 	honeypots.add(channel.id);
 	insertHoneypot.run(channel.id);
@@ -70,7 +78,23 @@ const unmarkHoneypot = async (channel: TextChannel) => {
 };
 
 client.once("clientReady", async () => {
-	await rest.put(Routes.applicationCommands(clientId), { body: commands });
+	const app = await client.application?.fetch().catch((error) => {
+		console.error("Error fetching application:", error);
+		return null;
+	});
+	const appId = app?.id ?? client.application?.id;
+	if (!appId) {
+		console.error("Error registering commands: missing application id");
+		return;
+	}
+
+	try {
+		await rest.put(Routes.applicationCommands(appId), { body: commands });
+	} catch (error) {
+		console.error("Error registering commands:", error);
+		return;
+	}
+
 	const perms = new PermissionsBitField([
 		PermissionsBitField.Flags.ViewChannel,
 		PermissionsBitField.Flags.SendMessages,
@@ -80,7 +104,7 @@ client.once("clientReady", async () => {
 		PermissionsBitField.Flags.ManageChannels,
 	]).bitfield;
 
-	const invite = `https://discord.com/oauth2/authorize?client_id=${clientId}&scope=bot%20applications.commands&permissions=${perms.toString()}`;
+	const invite = `https://discord.com/oauth2/authorize?client_id=${client.user?.id ?? ""}&scope=bot%20applications.commands&permissions=${perms.toString()}`;
 	console.log(`Invite: ${invite}`);
 	console.log(`Logged in as ${client.user?.tag}`);
 });
@@ -127,9 +151,15 @@ client.on("guildCreate", async (guild) => {
 
 	await markHoneypot(channel);
 
-	const owner = await guild.fetchOwner().catch(() => null);
+	const owner = await guild.fetchOwner().catch((error) => {
+		console.error("Error fetching guild owner:", error);
+		return null;
+	});
 	if (owner) {
-		const dm = await owner.createDM().catch(() => null);
+		const dm = await owner.createDM().catch((error) => {
+			console.error("Error creating DM with owner:", error);
+			return null;
+		});
 		await dm
 			?.send(
 				[
@@ -138,7 +168,9 @@ client.on("guildCreate", async (guild) => {
 					`Admin doesn't bypass hierarchy; bot role must outrank targets and keep Ban Members.`,
 				].join(" "),
 			)
-			.catch(() => {});
+			.catch((error) => {
+				console.error("Error sending owner DM:", error);
+			});
 	}
 });
 
@@ -152,7 +184,10 @@ client.on("messageCreate", async (message) => {
 	const me = message.guild.members.me;
 	if (!me) return;
 
-	const target = await message.guild.members.fetch(message.author.id).catch(() => null);
+	const target = await message.guild.members.fetch(message.author.id).catch((error) => {
+		console.error("Error fetching target member:", error);
+		return null;
+	});
 	if (!target) return;
 
 	if (!me.permissions.has(PermissionsBitField.Flags.BanMembers)) {
@@ -178,4 +213,6 @@ client.on("messageCreate", async (message) => {
 	});
 });
 
-client.login(token);
+client.login(token).catch((error) => {
+	console.error("Error logging in:", error);
+});

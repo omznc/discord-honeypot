@@ -1,0 +1,11 @@
+services:
+  discord-honeypot:
+    image: ghcr.io/omznc/discord-honeypot:latest
+    build: .
+    restart: unless-stopped
+    environment:
+      - DISCORD_TOKEN=${DISCORD_TOKEN}
+      - HONEYPOT_DB_PATH=/data/honeypots.sqlite
+    volumes:
+      - ./data:/data
+

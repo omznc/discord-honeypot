@@ -35,6 +35,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # Project files
 honeypots.json
+honeypots.sqlite
 discord-honeypot-amd64
 discord-honeypot-arm64
 discord-honeypot-windows
