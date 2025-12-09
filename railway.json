@@ -15,6 +15,7 @@
 		}
 	},
 	"deploy": {
+		"preDeployCommand": ["bun", "-e", "['DISCORD_TOKEN','CLIENT_ID'].forEach(n=>{if(!process.env[n]){console.error(`${n} required`);process.exit(1)}})"],
 		"startCommand": "bun run src/bot.ts"
 	},
 	"variables": {
