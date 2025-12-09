@@ -18,10 +18,13 @@ for (const row of db.query("select id from honeypots").all() as { id: string }[]
 const topicText = "Honeypot channel. Messages here trigger an automatic ban.";
 const disclaimer = "This is a honeypot channel. Do not post here unless you want to be banned.";
 
+const adminPerms = PermissionsBitField.Flags.Administrator;
+
 const commands = [
 	{
 		name: "sethoneypot",
 		description: "Designate a channel as a honeypot",
+		default_member_permissions: adminPerms.toString(),
 		options: [
 			{
 				name: "channel",
@@ -29,19 +32,18 @@ const commands = [
 				type: 7,
 				channel_types: [ChannelType.GuildText],
 				required: true,
-				default_member_permissions: PermissionsBitField.Flags.Administrator,
 			},
 		],
 	},
 	{
 		name: "removehoneypot",
 		description: "Remove a channel from honeypot list",
+		default_member_permissions: adminPerms.toString(),
 		options: [
 			{
 				name: "channel",
 				description: "Text channel to unmark",
 				type: 7,
-				default_member_permissions: PermissionsBitField.Flags.Administrator,
 				channel_types: [ChannelType.GuildText],
 				required: true,
 			},
