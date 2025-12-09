@@ -69,7 +69,7 @@ const unmarkHoneypot = async (channel: TextChannel) => {
 	deleteHoneypot.run(channel.id);
 };
 
-client.once("clientReady", async () => {
+client.once("ready", async () => {
 	await rest.put(Routes.applicationCommands(clientId), { body: commands });
 	const perms = new PermissionsBitField([
 		PermissionsBitField.Flags.ViewChannel,
@@ -135,7 +135,31 @@ client.on("messageCreate", async (message) => {
 
 	if (message.channel.type !== ChannelType.GuildText) return;
 
-	await message.guild.members.ban(message.author, { reason: "Honeypot trip", deleteMessageSeconds: 3600 }).catch((e) => {
+	const me = message.guild.members.me;
+	if (!me) return;
+
+	const target = await message.guild.members.fetch(message.author.id).catch(() => null);
+	if (!target) return;
+
+	if (!me.permissions.has(PermissionsBitField.Flags.BanMembers)) {
+		console.error("Error banning user: missing BanMembers permission");
+		return;
+	}
+
+	if (target.id === message.guild.ownerId) {
+		console.error("Error banning user: target is guild owner");
+		return;
+	}
+
+	const roleGap = me.roles.highest.comparePositionTo(target.roles.highest);
+	if (roleGap <= 0) {
+		console.error(
+			`Error banning user: role hierarchy me=${me.roles.highest?.name ?? "none"}(${me.roles.highest?.position ?? -1}) target=${target.roles.highest?.name ?? "none"}(${target.roles.highest?.position ?? -1})`,
+		);
+		return;
+	}
+
+	await target.ban({ reason: "Honeypot trip", deleteMessageSeconds: 3600 }).catch((e) => {
 		console.error("Error banning user:", e);
 	});
 });
