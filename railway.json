@@ -15,7 +15,7 @@
 		}
 	},
 	"deploy": {
-		"preDeployCommand": ["bun", "-e", "['DISCORD_TOKEN','CLIENT_ID'].forEach(n=>{if(!process.env[n]){console.error(`${n} required`);process.exit(1)}})"],
+		"preDeployCommand": "sh -c 'if [ -z \"$DISCORD_TOKEN\" ] || [ -z \"$CLIENT_ID\" ]; then echo \"Set DISCORD_TOKEN and CLIENT_ID\" >&2; exit 1; fi'",
 		"startCommand": "bun run src/bot.ts"
 	},
 	"variables": {
