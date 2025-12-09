@@ -2,9 +2,15 @@
 
 [![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/discord-honeypot?referralCode=oBQICw&utm_medium=integration&utm_source=template&utm_campaign=generic)
 
-Turns a Discord bot into a honeypot: it can auto-create a `#honeypot` text channel, lets admins mark any channel with `/sethoneypot`, and bans anyone who posts in honeypot channels while purging the last 24h of messages. Channel IDs are stored in `honeypots.sqlite` using Bun SQLite (configurable via `HONEYPOT_DB_PATH`, e.g. `/data/honeypots.sqlite` when using a Railway volume).
+An easily-deployable Discord bot that automatically bans spammers by creating and managing honeypot channels.
+
+When you invite the bot to any of your servers, it automatically creates a #honeypot channel with a disclaimer in it. You can also mark any channel as a honeypot channel using /sethoneypot.
+
+Discord spammers tend to send messages to every single channel when they spam, so this is an incredibly easy way to automatically handle those issues. All other messages from the user in the last 24 hours get deleted as well. Just deploy, invite, and forget.
 
 You can deploy it on Railway for free, or just run one of the binaries below locally.
+Deploy it here https://railway.com/deploy/discord-honeypot
+
 
 ## Downloads
 - [Linux x64](https://github.com/omznc/discord-honeypot/releases/latest/download/discord-honeypot-amd64)
