@@ -1,6 +1,6 @@
 # Discord Honeypot
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/7osx5U?referralCode=oBQICw&utm_medium=integration&utm_source=template&utm_campaign=generic)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/discord-honeypot?referralCode=oBQICw&utm_medium=integration&utm_source=template&utm_campaign=generic)
 
 Turns a Discord bot into a honeypot: it can auto-create a `#honeypot` text channel, lets admins mark any channel with `/sethoneypot`, and bans anyone who posts in honeypot channels while purging the last 24h of messages. Channel IDs are stored in `honeypots.sqlite` using Bun SQLite (configurable via `HONEYPOT_DB_PATH`, e.g. `/data/honeypots.sqlite` when using a Railway volume).
 
